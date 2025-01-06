@@ -212,7 +212,7 @@ function gameStates(textGameState) {
     }
     popup.appendChild(createButton('Restart', '', 'restart'));
     popup.appendChild(createButton('Quit', 'quit'));
-    popup.appendChild(createButton('you need to save your Rank ?', 'save',));
+    popup.appendChild(createButton('Save Your Rank !!', 'save',));
     HandlesavetButton()
     handleQuitButton();
     handleRestartButton();
@@ -238,18 +238,27 @@ function Score_user(row) {
     let div = document.createElement('div')
     div.className = "navigate"
     div.append(
-        popup.appendChild(createButton(">", 'priv'))
-        , popup.appendChild(createButton("<", 'next')))
+        popup.appendChild(createButton("prev", 'prev'))
+        , popup.appendChild(createButton("next", 'next')))
+
     popup.appendChild(div)
+    popup.appendChild(createButton('Restart', 'restart', 'restart'))
+
     let next = document.getElementById('next')
-    let priv = document.getElementById('priv')
+    let priv = document.getElementById('prev')
+    let restart = document.getElementById('restart')
+    restart.addEventListener('click', () => {
+        console.log('restart');
+        
+        handleRestartButton()
+    })
     next.addEventListener('click', () => {
-        nextPage()
+        nextPage(next)
     })
     priv.addEventListener('click', () => {
-        prevPage()
+        prevPage(priv)
     })
-
+   
 }
 function score() {
     let save = document.getElementById("send")
@@ -332,66 +341,65 @@ async function fetchScores() {
         if (response.ok) {
             const tableBody = document.createElement('tbody');
             Object.values(data).forEach(rowData => {
-                let rnk=""
+                let rnk = ""
                 const row = document.createElement('tr');
                 const rank = document.createElement('td');
                 const name = document.createElement('td');
                 const score = document.createElement('td');
                 const time = document.createElement('td');
                 if (rowData.rank === 1) {
-                    rnk='st'
+                    rnk = 'st'
                 }
                 else if (rowData.rank === 2) {
-                    rnk='nd'
+                    rnk = 'nd'
                 }
                 else if (rowData.rank === 3) {
-                    rnk='rd'
-                }else{
-                    rnk='th'
+                    rnk = 'rd'
+                } else {
+                    rnk = 'th'
                 }
-                rank.textContent = rowData.rank+rnk ;
+                rank.textContent = rowData.rank + rnk;
                 name.textContent = rowData.name;
                 score.textContent = rowData.score;
                 time.textContent = rowData.time;
-                
+
                 row.append(rank, name, score, time);
                 tableBody.appendChild(row);
             });
-
-
             Score_user(tableBody)
+            handleRestartButton()
         } else {
             alert("Failed to fetch scores.");
         }
     }
 }
- 
-async function prevPage() {
+
+async function prevPage(prev) {
     if (page > 1) {
         page--;
         await fetchScores();
     } else {
-        alert("You are already on the first page.");
+       prev.style.display='none'
     }
 }
 
 // Navigate to the next page
-async function nextPage() {
+async function nextPage(next) {
     if (page < totalPages) {
         page++;
         await fetchScores();
     } else {
-        alert("You are already on the last page.");
+        next.style.display='none'
     }
 }
 
 // Initialize pagination
 async function initPagination() {
     await fetchTotalPages();
-    
+
 }
 
- initPagination();
+initPagination();
 
 
 btnPause.addEventListener('click', pauseGame);
