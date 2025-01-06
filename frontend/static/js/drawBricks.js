@@ -1,12 +1,12 @@
 let bricksContainer = document.getElementById("bricks-container");
 function drawBricks() {
-RocksNum = 1  
+RocksNum = 3
   const colorList = [
     "red",
     "purple",
     "green",
-  //  "blue",
-  //   "pink",
+     //  "blue",
+    //   "pink",
     // "yellow",
     "cyan",
   ];

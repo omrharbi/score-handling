@@ -4,7 +4,8 @@ const shadowBackground = document.querySelector('.shadow-background');
 const btnPause = document.getElementById('pause');
 const timerDisplay = document.getElementById('timer');
 const RocksDisplay = document.getElementById('Rocks');
-
+let page = 1;
+let totalPages = 0;
 function createImage(path, id) {
     const img = document.createElement('img');
     img.src = path;
@@ -39,7 +40,6 @@ function createScors(row) {
     });
     table.appendChild(header);
     table.appendChild(row);
-
 
     return table;
 
@@ -230,8 +230,6 @@ function HandlesavetButton() {
     });
 }
 
-
-
 function Score_user(row) {
     clearPopup()
     popup.style.width = '400px'
@@ -243,6 +241,15 @@ function Score_user(row) {
         popup.appendChild(createButton(">", 'priv'))
         , popup.appendChild(createButton("<", 'next')))
     popup.appendChild(div)
+    let next = document.getElementById('next')
+    let priv = document.getElementById('priv')
+    next.addEventListener('click', () => {
+        nextPage()
+    })
+    priv.addEventListener('click', () => {
+        prevPage()
+    })
+
 }
 function score() {
     let save = document.getElementById("send")
@@ -293,7 +300,7 @@ async function sendScor(namePlayer, score, time, rank) {
     })
 
     if (responce.ok) {
-      GetScore()
+        await fetchScores()
 
     } else {
         let data = await responce.json()
@@ -301,58 +308,92 @@ async function sendScor(namePlayer, score, time, rank) {
     }
 }
 
-let page = 5
-let numberages=0
-async function numberPages(){
-    const responce = await fetch("/api/numberpages", {
+
+async function fetchTotalPages() {
+    const response = await fetch("/api/numberpages", {
         method: 'GET',
-    })
-    if(responce.ok){
-        let data=await responce.json()
-        numberages=data
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+        totalPages = data;
+    } else {
+        alert("Failed to fetch the total number of pages.");
     }
 }
-  numberPages()
 
-
-async function prives() {
-    if (numberages > 1) {
-        page--
-    } else {
-        page += 5
-    }
-    const responce = await fetch("/api/getscore?page=" + page, {
+async function fetchScores() {
+    const response = await fetch("/api/getscore?page=" + page, {
         method: 'GET',
-    })
-}
-async function GetScore() {
-    const responce = await fetch("/api/getscore?page=" + page, {
-        method: 'POST',
-    })
-    if (responce.ok) {
-        let data = await responce.json()
-        const tableBody = document.createElement('tbody');
-        Object.values(data).forEach(rowData => {
-            const row = document.createElement('tr');
-            const rank = document.createElement('td');
-            const name = document.createElement('td');
-            const score = document.createElement('td');
-            const time = document.createElement('td');
-            rank.textContent = rowData.rank;
-            name.textContent = rowData.name;
-            score.textContent = rowData.score;
-            time.textContent = rowData.time;
-            row.append(rank, name, score, time);
-            tableBody.appendChild(row);
-        });
+    });
 
-        Score_user(tableBody)
+    if (response.ok) {
+        const data = await response.json();
+        if (response.ok) {
+            const tableBody = document.createElement('tbody');
+            Object.values(data).forEach(rowData => {
+                let rnk=""
+                const row = document.createElement('tr');
+                const rank = document.createElement('td');
+                const name = document.createElement('td');
+                const score = document.createElement('td');
+                const time = document.createElement('td');
+                if (rowData.rank === 1) {
+                    rnk='st'
+                }
+                else if (rowData.rank === 2) {
+                    rnk='nd'
+                }
+                else if (rowData.rank === 3) {
+                    rnk='rd'
+                }else{
+                    rnk='th'
+                }
+                rank.textContent = rowData.rank+rnk ;
+                name.textContent = rowData.name;
+                score.textContent = rowData.score;
+                time.textContent = rowData.time;
+                
+                row.append(rank, name, score, time);
+                tableBody.appendChild(row);
+            });
 
-    } else {
-        let data = await responce.json()
-        alert("error", data)
+
+            Score_user(tableBody)
+        } else {
+            alert("Failed to fetch scores.");
+        }
     }
 }
+ 
+async function prevPage() {
+    if (page > 1) {
+        page--;
+        await fetchScores();
+    } else {
+        alert("You are already on the first page.");
+    }
+}
+
+// Navigate to the next page
+async function nextPage() {
+    if (page < totalPages) {
+        page++;
+        await fetchScores();
+    } else {
+        alert("You are already on the last page.");
+    }
+}
+
+// Initialize pagination
+async function initPagination() {
+    await fetchTotalPages();
+    
+}
+
+ initPagination();
+
+
 btnPause.addEventListener('click', pauseGame);
 
 startGame();
