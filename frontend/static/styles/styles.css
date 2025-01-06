@@ -87,7 +87,13 @@ table {
   position: absolute;
   bottom: 0;
 }
-
+.navigate {
+  display: flex
+ 
+}
+button#priv {
+   margin-right: 19px;
+}
 .brick {
   position: relative;
   width: 70px;

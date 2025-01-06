@@ -38,24 +38,8 @@ function createScors(row) {
         header.appendChild(th);
     });
     table.appendChild(header);
-    // const data = [
-    //     ['1st', 'Kave', '233254', '12:01'],
-    //     ['2nd', 'A.J.', '222555', '03:00'],
-    //     ['3rd', 'O.J.', '14356', '05:40'],
-    //     ['4th', '-.-', '13663', '02:34'],
-    //     ['5th', 'iris', '2354', '00:40']
-    // ];
-
-    // // Populate table rows
-    // data.forEach(rowData => {
-    //     const row = document.createElement('tr');
-    //     rowData.forEach(cellData => {
-    //         const td = document.createElement('td');
-    //         td.textContent = cellData;
-    //         row.appendChild(td);
-    //     });
     table.appendChild(row);
-    //   });
+
 
     return table;
 
@@ -229,12 +213,12 @@ function gameStates(textGameState) {
     popup.appendChild(createButton('Restart', '', 'restart'));
     popup.appendChild(createButton('Quit', 'quit'));
     popup.appendChild(createButton('you need to save your Rank ?', 'save',));
-    handlesavetButton()
+    HandlesavetButton()
     handleQuitButton();
     handleRestartButton();
 }
 
-function handlesavetButton() {
+function HandlesavetButton() {
     document.getElementById('save').addEventListener('click', () => {
         clearPopup()
         popup.style.width = '400px'
@@ -242,22 +226,26 @@ function handlesavetButton() {
         popup.appendChild(createHeading('Enter Your Name'))
         popup.appendChild(createInput('input'))
         popup.appendChild(createButton('Save', 'send'));
-
         score()
     });
 }
+
+
 
 function Score_user(row) {
     clearPopup()
     popup.style.width = '400px'
     popup.appendChild(createImage('static/styles/logo.jpg', 'logo'));
     popup.appendChild(createScors(row))
-
+    let div = document.createElement('div')
+    div.className = "navigate"
+    div.append(
+        popup.appendChild(createButton(">", 'priv'))
+        , popup.appendChild(createButton("<", 'next')))
+    popup.appendChild(div)
 }
-
 function score() {
     let save = document.getElementById("send")
-
     save.addEventListener('click', async () => {
         let namePlayer = document.getElementById('input');
         if (namePlayer.value === '') {
@@ -291,7 +279,7 @@ function score() {
 async function sendScor(namePlayer, score, time, rank) {
 
     console.log(namePlayer, +score, time, rank);
-    const responce = await fetch("http://localhost:8080/api/score", {
+    const responce = await fetch("/api/score", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -305,7 +293,7 @@ async function sendScor(namePlayer, score, time, rank) {
     })
 
     if (responce.ok) {
-        GetScore()
+      GetScore()
 
     } else {
         let data = await responce.json()
@@ -313,13 +301,34 @@ async function sendScor(namePlayer, score, time, rank) {
     }
 }
 
-
-async function GetScore() {
-    const responce = await fetch("http://localhost:8080/api/getscore", {
+let page = 5
+let numberages=0
+async function numberPages(){
+    const responce = await fetch("/api/numberpages", {
         method: 'GET',
-
     })
+    if(responce.ok){
+        let data=await responce.json()
+        numberages=data
+    }
+}
+  numberPages()
 
+
+async function prives() {
+    if (numberages > 1) {
+        page--
+    } else {
+        page += 5
+    }
+    const responce = await fetch("/api/getscore?page=" + page, {
+        method: 'GET',
+    })
+}
+async function GetScore() {
+    const responce = await fetch("/api/getscore?page=" + page, {
+        method: 'POST',
+    })
     if (responce.ok) {
         let data = await responce.json()
         const tableBody = document.createElement('tbody');
@@ -329,15 +338,14 @@ async function GetScore() {
             const name = document.createElement('td');
             const score = document.createElement('td');
             const time = document.createElement('td');
-    
             rank.textContent = rowData.rank;
             name.textContent = rowData.name;
             score.textContent = rowData.score;
             time.textContent = rowData.time;
-    
             row.append(rank, name, score, time);
             tableBody.appendChild(row);
         });
+
         Score_user(tableBody)
 
     } else {
@@ -345,7 +353,6 @@ async function GetScore() {
         alert("error", data)
     }
 }
-GetScore()
 btnPause.addEventListener('click', pauseGame);
 
 startGame();
